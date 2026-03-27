@@ -5,31 +5,33 @@ import '../core/utils/session_storage.dart';
 import '../widgets/auth/auth_primary_button.dart';
 import '../widgets/auth/auth_text_field.dart';
 import 'home_screen.dart';
-import 'register_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   bool _isSubmitting = false;
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _login() async {
+  Future<void> _register() async {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) {
       return;
@@ -38,30 +40,25 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      final hasUser = await SessionStorage.hasRegisteredUser();
-      if (!hasUser) {
-        _showError('Aún no existe un usuario registrado. Crea tu cuenta primero.');
-        return;
-      }
+      final username = _usernameController.text.trim();
+      final password = _passwordController.text;
 
-      final credentialsAreValid = await SessionStorage.validateCredentials(
-        username: _usernameController.text.trim(),
-        password: _passwordController.text,
-      );
-
-      if (!credentialsAreValid) {
-        _showError('Usuario o contraseña incorrectos. Revisa tus datos.');
-        return;
-      }
-
+      await SessionStorage.registerUser(username: username, password: password);
       await SessionStorage.saveSessionStatus(true);
 
       if (!mounted) {
         return;
       }
 
-      Navigator.of(context).pushReplacement(
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          SnackBar(content: Text('Cuenta creada correctamente. ¡Bienvenido, $username!')),
+        );
+
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
+        (route) => false,
       );
     } finally {
       if (mounted) {
@@ -70,22 +67,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _showError(String message) {
-    if (!mounted) {
-      return;
-    }
-
-    ScaffoldMessenger.of(context)
-      ..clearSnackBars()
-      ..showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Iniciar sesión')),
+      appBar: AppBar(title: const Text('Crear cuenta')),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -97,22 +82,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Bienvenido a Animalpedia', style: AppTextStyles.headlineMedium),
+                    Text('Regístrate en Animalpedia', style: AppTextStyles.headlineMedium),
                     const SizedBox(height: 8),
                     Text(
-                      'Inicia sesión para continuar.',
+                      'Crea un usuario local para iniciar sesión.',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 24),
                     AuthTextField(
                       controller: _usernameController,
                       label: 'Username',
-                      hintText: 'Ej: raccoonlover',
+                      hintText: 'Mínimo 4 caracteres',
                       textInputAction: TextInputAction.next,
                       validator: (value) {
                         final username = value?.trim() ?? '';
                         if (username.isEmpty) {
-                          return 'Ingresa tu username.';
+                          return 'El username es obligatorio.';
                         }
                         if (username.length < 4) {
                           return 'El username debe tener mínimo 4 caracteres.';
@@ -124,12 +109,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     AuthTextField(
                       controller: _passwordController,
                       label: 'Contraseña',
+                      hintText: 'Mínimo 6 caracteres',
                       obscureText: _obscurePassword,
-                      textInputAction: TextInputAction.done,
+                      textInputAction: TextInputAction.next,
                       validator: (value) {
                         final password = value ?? '';
                         if (password.isEmpty) {
-                          return 'Ingresa tu contraseña.';
+                          return 'La contraseña es obligatoria.';
                         }
                         if (password.length < 6) {
                           return 'La contraseña debe tener mínimo 6 caracteres.';
@@ -143,24 +129,41 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    AuthTextField(
+                      controller: _confirmPasswordController,
+                      label: 'Confirmar contraseña',
+                      obscureText: _obscureConfirmPassword,
+                      textInputAction: TextInputAction.done,
+                      validator: (value) {
+                        final confirmPassword = value ?? '';
+                        if (confirmPassword.isEmpty) {
+                          return 'Debes confirmar tu contraseña.';
+                        }
+                        if (confirmPassword != _passwordController.text) {
+                          return 'Las contraseñas no coinciden.';
+                        }
+                        return null;
+                      },
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+                        },
+                        icon: Icon(
+                          _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 24),
                     AuthPrimaryButton(
-                      text: 'Entrar',
+                      text: 'Crear cuenta',
                       isLoading: _isSubmitting,
-                      onPressed: _login,
+                      onPressed: _register,
                     ),
                     const SizedBox(height: 16),
                     TextButton(
-                      onPressed: _isSubmitting
-                          ? null
-                          : () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => const RegisterScreen(),
-                                ),
-                              );
-                            },
-                      child: const Text('¿No tienes cuenta? Regístrate'),
+                      onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
+                      child: const Text('¿Ya tienes cuenta? Inicia sesión'),
                     ),
                   ],
                 ),
