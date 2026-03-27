@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/constants/app_constants.dart';
 import '../core/utils/session_storage.dart';
+import 'animal_map_screen.dart';
 import 'feature_placeholder_screen.dart';
 import 'login_screen.dart';
 
@@ -84,14 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       'Ubica regiones y hábitats para iniciar nuevas expediciones.',
                                   icon: Icons.map_outlined,
                                   accentColor: const Color(0xFF6F8CFF),
-                                  onTap: () => _openFeature(
-                                    FeaturePlaceholderScreen(
-                                      title: 'Explorar mapa',
-                                      description:
-                                          'Aquí podrás navegar un mapa interactivo para descubrir especies por región.',
-                                      icon: Icons.travel_explore,
-                                    ),
-                                  ),
+                                  onTap: () => _openFeature(const AnimalMapScreen()),
                                 ),
                                 _FeatureCard(
                                   title: 'Animales descubiertos',
