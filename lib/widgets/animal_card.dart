@@ -3,88 +3,139 @@ import 'package:flutter/material.dart';
 import '../models/animal.dart';
 
 class AnimalCard extends StatelessWidget {
-  const AnimalCard({super.key, required this.animal});
+  const AnimalCard({
+    super.key,
+    required this.animal,
+    required this.isDiscovered,
+    this.onTap,
+  });
 
   final Animal animal;
+  final bool isDiscovered;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.asset(
-                animal.imagePath,
-                width: 90,
-                height: 90,
-                fit: BoxFit.cover,
-              ),
+    final theme = Theme.of(context);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            gradient: isDiscovered
+                ? const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF191919), Color(0xFF0F0F0F)],
+                  )
+                : const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF111111), Color(0xFF090909)],
+                  ),
+            border: Border.all(
+              color: isDiscovered ? Colors.white.withOpacity(0.10) : Colors.white.withOpacity(0.06),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          animal.name,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      _DiscoveryBadge(isDiscovered: animal.descubierto),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    animal.scientificName,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    animal.description,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.34),
+                blurRadius: 18,
+                offset: const Offset(0, 10),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: isDiscovered ? _DiscoveredContent(animal: animal, theme: theme) : _LockedContent(theme: theme),
+          ),
         ),
       ),
     );
   }
 }
 
-class _DiscoveryBadge extends StatelessWidget {
-  const _DiscoveryBadge({required this.isDiscovered});
+class _DiscoveredContent extends StatelessWidget {
+  const _DiscoveredContent({required this.animal, required this.theme});
 
-  final bool isDiscovered;
+  final Animal animal;
+  final ThemeData theme;
 
   @override
   Widget build(BuildContext context) {
-    final color = isDiscovered ? const Color(0xFF5EC8A7) : const Color(0xFFE29B63);
-    final text = isDiscovered ? 'Descubierto' : 'Pendiente';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.asset(
+            animal.imagePath,
+            height: 120,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          animal.nombre,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${animal.pais} · ${animal.bioma}',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
+        ),
+      ],
+    );
+  }
+}
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.18),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
+class _LockedContent extends StatelessWidget {
+  const _LockedContent({required this.theme});
+
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.white.withOpacity(0.04),
             ),
-      ),
+            child: const Icon(
+              Icons.help_outline_rounded,
+              color: Colors.white54,
+              size: 50,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'Animal desconocido',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleMedium?.copyWith(color: Colors.white70, fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Descúbrelo en el mapa para revelar su ficha.',
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodySmall?.copyWith(color: Colors.white54),
+        ),
+      ],
     );
   }
 }
