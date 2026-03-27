@@ -10,6 +10,8 @@ import 'register_screen.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
+  static const String routeName = '/login';
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -60,9 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
-      );
+      Navigator.of(context).pushReplacementNamed(HomeScreen.routeName);
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -154,11 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: _isSubmitting
                           ? null
                           : () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => const RegisterScreen(),
-                                ),
-                              );
+                              Navigator.of(context).pushNamed(RegisterScreen.routeName);
                             },
                       child: const Text('¿No tienes cuenta? Regístrate'),
                     ),
