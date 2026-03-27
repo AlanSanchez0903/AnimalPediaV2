@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
-import 'screens/home_screen.dart';
+import 'screens/splash_screen.dart';
 
 class AnimalpediaApp extends StatelessWidget {
   const AnimalpediaApp({super.key});
@@ -15,7 +15,7 @@ class AnimalpediaApp extends StatelessWidget {
       themeMode: ThemeMode.dark,
       theme: AppTheme.darkTheme,
       darkTheme: AppTheme.darkTheme,
-      home: const HomeScreen(),
+      home: const SplashScreen(),
     );
   }
 }
