@@ -30,9 +30,17 @@ class AnimalCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    animal.name,
-                    style: Theme.of(context).textTheme.titleMedium,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          animal.name,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      _DiscoveryBadge(isDiscovered: animal.descubierto),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -49,6 +57,33 @@ class AnimalCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DiscoveryBadge extends StatelessWidget {
+  const _DiscoveryBadge({required this.isDiscovered});
+
+  final bool isDiscovered;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isDiscovered ? const Color(0xFF5EC8A7) : const Color(0xFFE29B63);
+    final text = isDiscovered ? 'Descubierto' : 'Pendiente';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
       ),
     );
   }

@@ -1,8 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Persistencia local mínima para registrar animales descubiertos.
+/// Servicio local para persistir y consultar el progreso de descubrimiento.
 ///
-/// Se guarda únicamente el listado de ids en SharedPreferences.
+/// Se guarda únicamente el listado de ids de animales descubiertos.
 class AnimalDiscoveryStorage {
   AnimalDiscoveryStorage._();
 
@@ -17,5 +17,15 @@ class AnimalDiscoveryStorage {
   static Future<void> saveDiscoveredIds(Set<String> ids) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(_discoveredAnimalsKey, ids.toList()..sort());
+  }
+
+  static Future<void> markAsDiscovered(String animalId) async {
+    final currentIds = await loadDiscoveredIds();
+    if (currentIds.contains(animalId)) {
+      return;
+    }
+
+    final updatedIds = <String>{...currentIds, animalId};
+    await saveDiscoveredIds(updatedIds);
   }
 }

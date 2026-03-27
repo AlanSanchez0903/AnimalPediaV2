@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_constants.dart';
 import '../core/utils/session_storage.dart';
 import 'animal_map_screen.dart';
-import 'feature_placeholder_screen.dart';
+import 'animal_collection_screen.dart';
 import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -93,12 +93,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   icon: Icons.pets_outlined,
                                   accentColor: const Color(0xFF5EC8A7),
                                   onTap: () => _openFeature(
-                                    FeaturePlaceholderScreen(
-                                      title: 'Animales descubiertos',
-                                      description:
-                                          'Aquí podrás ver todos los animales que ya descubriste con sus detalles.',
-                                      icon: Icons.fact_check_outlined,
-                                    ),
+                                    const AnimalCollectionScreen(showOnlyDiscovered: true),
                                   ),
                                 ),
                                 _FeatureCard(
@@ -108,12 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   icon: Icons.visibility_outlined,
                                   accentColor: const Color(0xFFE29B63),
                                   onTap: () => _openFeature(
-                                    FeaturePlaceholderScreen(
-                                      title: 'Animales por descubrir',
-                                      description:
-                                          'Aquí encontrarás especies pendientes para completar tu Animalpedia.',
-                                      icon: Icons.radar_outlined,
-                                    ),
+                                    const AnimalCollectionScreen(showOnlyUndiscovered: true),
                                   ),
                                 ),
                                 _FeatureCard(
