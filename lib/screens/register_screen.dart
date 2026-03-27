@@ -9,6 +9,8 @@ import 'home_screen.dart';
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
+  static const String routeName = '/register';
+
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
@@ -56,10 +58,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           SnackBar(content: Text('Cuenta creada correctamente. ¡Bienvenido, $username!')),
         );
 
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
-        (route) => false,
-      );
+      Navigator.of(context).pushNamedAndRemoveUntil(HomeScreen.routeName, (route) => false);
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);

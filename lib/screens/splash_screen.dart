@@ -8,6 +8,8 @@ import 'login_screen.dart';
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
+  static const String routeName = '/';
+
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
@@ -30,13 +32,9 @@ class _SplashScreenState extends State<SplashScreen> {
       return;
     }
 
-    final targetScreen = hasSession
-        ? const HomeScreen()
-        : const LoginScreen();
+    final targetRoute = hasSession ? HomeScreen.routeName : LoginScreen.routeName;
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(builder: (_) => targetScreen),
-    );
+    Navigator.of(context).pushReplacementNamed(targetRoute);
   }
 
   @override
