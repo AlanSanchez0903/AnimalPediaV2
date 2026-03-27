@@ -1,0 +1,172 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+
+import '../core/utils/animal_discovery_storage.dart';
+import '../models/animal.dart';
+import '../repositories/animal_repository.dart';
+import '../widgets/map/animal_detail_sheet.dart';
+import '../widgets/map/animal_marker.dart';
+
+/// Pantalla principal del mapa (versión 2D estable para enfoque estudiantil).
+class AnimalMapScreen extends StatefulWidget {
+  const AnimalMapScreen({super.key});
+
+  static const String routeName = '/animal-map';
+
+  @override
+  State<AnimalMapScreen> createState() => _AnimalMapScreenState();
+}
+
+class _AnimalMapScreenState extends State<AnimalMapScreen> {
+  final AnimalRepository _repository = AnimalRepository();
+
+  List<Animal> _animals = <Animal>[];
+  Set<String> _discoveredIds = <String>{};
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMapData();
+  }
+
+  Future<void> _loadMapData() async {
+    final animals = await _repository.getAnimals();
+    final discoveredIds = await AnimalDiscoveryStorage.loadDiscoveredIds();
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _animals = animals;
+      _discoveredIds = discoveredIds;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _onAnimalTap(Animal animal) async {
+    if (!_discoveredIds.contains(animal.id)) {
+      final updatedDiscovered = <String>{..._discoveredIds, animal.id};
+      await AnimalDiscoveryStorage.saveDiscoveredIds(updatedDiscovered);
+
+      if (mounted) {
+        setState(() {
+          _discoveredIds = updatedDiscovered;
+        });
+      }
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF141414),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return AnimalDetailSheet(
+          animal: animal,
+          isDiscovered: _discoveredIds.contains(animal.id),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final discoveredCount = _discoveredIds.length;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Mapa Animalpedia'),
+        centerTitle: true,
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                _MapProgressHeader(
+                  discoveredCount: discoveredCount,
+                  totalCount: _animals.length,
+                ),
+                Expanded(
+                  child: FlutterMap(
+                    options: const MapOptions(
+                      initialCenter: LatLng(18, 0),
+                      initialZoom: 2.0,
+                      minZoom: 1.5,
+                      maxZoom: 6.0,
+                    ),
+                    children: [
+                      TileLayer(
+                        // Tema oscuro sobrio sin API key.
+                        urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+                        subdomains: const ['a', 'b', 'c', 'd'],
+                        userAgentPackageName: 'com.example.animalpedia',
+                      ),
+                      MarkerLayer(
+                        markers: _animals
+                            .map(
+                              (animal) => Marker(
+                                point: LatLng(animal.latitud, animal.longitud),
+                                width: 42,
+                                height: 42,
+                                child: AnimalMarker(
+                                  isDiscovered: _discoveredIds.contains(animal.id),
+                                  onTap: () => _onAnimalTap(animal),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+class _MapProgressHeader extends StatelessWidget {
+  const _MapProgressHeader({required this.discoveredCount, required this.totalCount});
+
+  final int discoveredCount;
+  final int totalCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Progreso de descubrimiento',
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '$discoveredCount / $totalCount animales descubiertos',
+            style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70),
+          ),
+        ],
+      ),
+    );
+  }
+}
