@@ -12,7 +12,9 @@ class AnimalpediaApp extends StatelessWidget {
     return MaterialApp(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.dark,
       theme: AppTheme.darkTheme,
+      darkTheme: AppTheme.darkTheme,
       home: const HomeScreen(),
     );
   }
