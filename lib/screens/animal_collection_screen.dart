@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/animal.dart';
 import '../repositories/animal_repository.dart';
 import '../widgets/animal_card.dart';
-import '../widgets/map/animal_detail_sheet.dart';
+import 'animal_detail_screen.dart';
 
 enum CollectionTab { discovered, undiscovered }
 
@@ -100,16 +100,9 @@ class _CollectionScreenState extends State<CollectionScreen> {
   }
 
   void _handleDiscoveredAnimalTap(Animal animal) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF101010),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => AnimalDetailSheet(
-        animal: animal,
-        isDiscovered: true,
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => AnimalDetailScreen(animal: animal),
       ),
     );
   }
