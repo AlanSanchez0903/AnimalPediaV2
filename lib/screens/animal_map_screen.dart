@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../core/utils/animal_discovery_storage.dart';
 import '../models/animal.dart';
 import '../repositories/animal_repository.dart';
 import '../widgets/map/animal_detail_sheet.dart';
@@ -22,7 +21,6 @@ class _AnimalMapScreenState extends State<AnimalMapScreen> {
   final AnimalRepository _repository = AnimalRepository();
 
   List<Animal> _animals = <Animal>[];
-  Set<String> _discoveredIds = <String>{};
   bool _isLoading = true;
 
   @override
@@ -33,7 +31,6 @@ class _AnimalMapScreenState extends State<AnimalMapScreen> {
 
   Future<void> _loadMapData() async {
     final animals = await _repository.getAnimals();
-    final discoveredIds = await AnimalDiscoveryStorage.loadDiscoveredIds();
 
     if (!mounted) {
       return;
@@ -41,20 +38,26 @@ class _AnimalMapScreenState extends State<AnimalMapScreen> {
 
     setState(() {
       _animals = animals;
-      _discoveredIds = discoveredIds;
       _isLoading = false;
     });
   }
 
   Future<void> _onAnimalTap(Animal animal) async {
-    if (!_discoveredIds.contains(animal.id)) {
-      final updatedDiscovered = <String>{..._discoveredIds, animal.id};
-      await AnimalDiscoveryStorage.saveDiscoveredIds(updatedDiscovered);
+    Animal selectedAnimal = animal;
+
+    if (!animal.descubierto) {
+      await _repository.markAsDiscovered(animal.id);
 
       if (mounted) {
         setState(() {
-          _discoveredIds = updatedDiscovered;
+          _animals = _animals
+              .map(
+                (item) => item.id == animal.id ? item.copyWith(descubierto: true) : item,
+              )
+              .toList();
         });
+
+        selectedAnimal = selectedAnimal.copyWith(descubierto: true);
       }
     }
 
@@ -71,8 +74,8 @@ class _AnimalMapScreenState extends State<AnimalMapScreen> {
       ),
       builder: (context) {
         return AnimalDetailSheet(
-          animal: animal,
-          isDiscovered: _discoveredIds.contains(animal.id),
+          animal: selectedAnimal,
+          isDiscovered: selectedAnimal.descubierto,
         );
       },
     );
@@ -80,7 +83,7 @@ class _AnimalMapScreenState extends State<AnimalMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final discoveredCount = _discoveredIds.length;
+    final discoveredCount = _animals.where((animal) => animal.descubierto).length;
 
     return Scaffold(
       appBar: AppBar(
@@ -118,7 +121,7 @@ class _AnimalMapScreenState extends State<AnimalMapScreen> {
                                 width: 42,
                                 height: 42,
                                 child: AnimalMarker(
-                                  isDiscovered: _discoveredIds.contains(animal.id),
+                                  isDiscovered: animal.descubierto,
                                   onTap: () => _onAnimalTap(animal),
                                 ),
                               ),
