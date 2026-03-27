@@ -4,7 +4,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../models/animal.dart';
 import '../repositories/animal_repository.dart';
-import '../widgets/map/animal_detail_sheet.dart';
+import 'animal_detail_screen.dart';
 import '../widgets/map/animal_marker.dart';
 
 /// Pantalla principal del mapa (versión 2D estable para enfoque estudiantil).
@@ -65,19 +65,10 @@ class _AnimalMapScreenState extends State<AnimalMapScreen> {
       return;
     }
 
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF141414),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => AnimalDetailScreen(animal: selectedAnimal),
       ),
-      builder: (context) {
-        return AnimalDetailSheet(
-          animal: selectedAnimal,
-          isDiscovered: selectedAnimal.descubierto,
-        );
-      },
     );
   }
 
